@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>S_R FUTURE NINJA AI BOT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{box-sizing:border-box;font-family:Segoe UI,Arial}
+body{
+margin:0;
+background:linear-gradient(135deg,#0b0f2e,#050818);
+color:#fff;
+display:flex;
+flex-direction:column;
+align-items:center;
+padding:20px;
+}
+header{
+display:flex;
+flex-direction:column;
+align-items:center;
+gap:10px;
+margin-bottom:20px;
+}
+header img{
+width:125px;
+height:125px;
+border-radius:20px;
+border:3px solid #00ffff;
+box-shadow:0 0 25px #00ffff;
+}
+header h1{
+color:#00ffff;
+letter-spacing:1px;
+text-align:center;
+font-size:20px;
+}
+.box{
+width:100%;
+max-width:480px;
+background:#0c102b;
+border-radius:18px;
+padding:18px;
+margin-bottom:15px;
+box-shadow:0 0 25px rgba(0,255,255,.2);
+}
+input,select,button{
+width:100%;
+margin-top:10px;
+padding:12px;
+border-radius:12px;
+border:none;
+background:#050818;
+color:#fff;
+font-size:15px;
+}
+button{
+background:linear-gradient(90deg,#00ffff,#00bfff);
+font-weight:700;
+cursor:pointer;
+}
+button:hover{
+box-shadow:0 0 20px #00ffff;
+}
+.notice{
+margin-top:12px;
+text-align:center;
+font-weight:700;
+}
+.rules{
+font-size:13px;
+line-height:1.5;
+background:rgba(255,255,255,.05);
+padding:10px;
+border-radius:12px;
+}
+.result{
+display:none;
+}
+.signal{
+font-weight:700;
+margin-bottom:6px;
+}
+.up{
+color:#39ff14;
+text-shadow:0 0 10px #39ff14;
+}
+.down{
+color:#ff073a;
+text-shadow:0 0 10px #ff073a;
+}
+footer{
+margin-top:10px;
+color:#00ffff;
+font-weight:700;
+opacity:.8;
+text-align:center;
+}
+</style>
+</head>
+<body>
+
+<header>
+<img src="https://i.ibb.co/9mRt3SqF/logo.png">
+<h1>S_R FUTURE NINJA AI BOT</h1>
+</header>
+
+<!-- LOGIN -->
+<div class="box" id="loginBox">
+<h3>Bot Login</h3>
+<input id="user" placeholder="Username">
+<input id="key" type="password" placeholder="License Key">
+<button onclick="login()">Activate Bot</button>
+<div class="notice" id="loginMsg"></div>
+</div>
+
+<!-- RULES -->
+<div class="box" id="rulesBox" style="display:none">
+<h3>Rules</h3>
+<div class="rules">
+<div>➊ লস হলে 1-step MTG  ব্যবহার করুন একই ডিরেকশনে</div>
+<div>➋ 75% এর নিচে কোনো মার্কেটে ট্রেড করবেন না</div>
+<div>➌ সবসময় UTC:+6 🇧🇩 ব্যবহার করুন</div>
+<div>➍ ভালো প্রফিটের জন্য আগের 4/5 টি সিগন্যাল মিলিয়ে নিন</div>
+<div>➎ Back-to-back লস হলে ট্রেড করবেন না</div>
+</div>
+</div>
+
+<!-- SETTINGS -->
+<div class="box" id="setBox" style="display:none">
+<h3>Bot Settings</h3>
+<input value="Timeframe : 1 Minute" disabled>
+<input value="Market : OTC" disabled>
+<select id="count">
+<option>5</option>
+<option>8</option>
+<option>10</option>
+<option>12</option>
+<option>15</option>
+<option>20</option>
+<option>25</option>
+<option>30</option>
+</select>
+<button onclick="generate()">Generate Signal</button>
+</div>
+
+<!-- RESULT -->
+<div class="box result" id="resultBox">
+<h3>Generated Signals</h3>
+<div id="out"></div>
+</div>
+
+<footer>POWERED BY S_R TRADER TEAM™</footer>
+
+<script>
+const USER="S_RTRADER_098";
+const LIC="S_R-FUTURE-543";
+let signals=[];
+
+// LOGIN FUNCTION
+function login(){
+let u=user.value.trim();
+let k=key.value.trim();
+if(u===USER && k===LIC){
+loginMsg.innerHTML="✅ BOT ACTIVATED";
+loginMsg.style.color="#39ff14";
+setTimeout(()=>{
+loginBox.style.display="none";
+rulesBox.style.display="block";
+setBox.style.display="block";
+},800);
+}else{
+loginMsg.innerHTML="❌ INVALID ACCESS";
+loginMsg.style.color="#ff073a";
+}
+}
+
+// SHUFFLE ARRAY
+function shuffleArray(array){
+for(let i=array.length-1;i>0;i--){
+let j=Math.floor(Math.random()*(i+1));
+[array[i],array[j]]=[array[j],array[i]];
+}
+}
+
+// GENERATE SIGNAL FUNCTION
+function generate(){
+let n=parseInt(document.getElementById("count").value);
+let markets = ["USD/BDT","USD/BRL","USD/IDR","USD/NGN","USD/PKR","EUR/CAD","USD/MXN","USD/INR];
+let directions = [];
+
+// Balanced UP/DOWN
+let half = Math.floor(n/2);
+for(let i=0;i<half;i++){ directions.push("UP"); directions.push("DOWN"); }
+if(n%2!==0){ directions.push(Math.random()>0.5?"UP":"DOWN"); }
+shuffleArray(directions);
+
+// UTC+6 time
+let now = new Date();
+let utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+let time = new Date(utc + 6*60*60000);
+
+// যদি আগের সিগনাল থাকে, শেষ সময় থেকে শুরু করো
+if(signals.length>0){
+let lastSignal = signals[signals.length-1];
+let lastTimeStr = lastSignal.split(" - ")[0];
+let [h,m] = lastTimeStr.split(":").map(Number);
+time.setHours(h);
+time.setMinutes(m);
+}
+
+for(let i=0;i<n;i++){
+let gap = [2,3,5][Math.floor(Math.random()*3)];
+time.setMinutes(time.getMinutes() + gap);
+
+let h = time.getHours(); // 24-hour format
+let m = String(time.getMinutes()).padStart(2,"0");
+
+let market = markets[Math.floor(Math.random()*markets.length)];
+let line = `${h}:${m} - ${market} - (OTC) > ${directions[i]}`;
+signals.push(line);
+}
+
+render();
+}
+
+// RENDER FUNCTION
+function render(){
+out.innerHTML="";
+signals.forEach(s=>{
+let d=document.createElement("div");
+d.className="signal "+(s.includes("UP")?"up":"down");
+d.innerText=s+(s.includes("UP")?" 👆":" 👇");
+out.appendChild(d);
+});
+resultBox.style.display="block";
+}
+</script>
+</body>
+</html>
