@@ -231,7 +231,13 @@ out.innerHTML="";
 signals.forEach(s=>{
 let d=document.createElement("div");
 d.className="signal "+(s.includes("UP")?"up":"down");
-d.innerText=s+(s.includes("UP")?" 👆":" 👇");
+let isUp = s.includes("UP");
+
+if(isUp){
+  d.innerText = s.replace("UP","UP   ") + " 👆";
+}else{
+  d.innerText = s + " 👇";
+  }
 out.appendChild(d);
 });
 resultBox.style.display="block";
