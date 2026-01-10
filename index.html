@@ -80,7 +80,6 @@ display:none;
 .signal{
 font-weight:700;
 margin-bottom:6px;
-font-family: "Courier New", monospace;  
 }
 .up{
 color:#39ff14;
@@ -122,7 +121,7 @@ text-align:center;
 <div>➊ লস হলে 1-step MTG ব্যবহার করুন একই ডিরেকশনে</div>
 <div>➋ 75% এর নিচে কোনো মার্কেটে ট্রেড করবেন না</div>
 <div>➌ সবসময় UTC:+6 🇧🇩 ব্যবহার করুন</div>
-<div>➍ ভালো প্রফিটের জন্য আগে 4/5 টি সিগন্যাল মিলিয়ে নিন</div>
+<div>➍ ভালো প্রফিটের জন্য আগের 4/5 টি সিগন্যাল মিলিয়ে নিন</div>
 <div>➎ Back-to-back লস হলে ট্রেড করবেন না</div>
 </div>
 </div>
@@ -155,39 +154,49 @@ text-align:center;
 
 <script>
 const USER="S_RTRADER_098";
-const LIC="S_R-FUTURE-543";
+const LICENSE_URL = "https://raw.githubusercontent.com/srtrader098/license-server/refs/heads/main/license.json";
 let signals=[];
 
 // LOGIN FUNCTION
-function login(){
-let u=user.value.trim();
-let k=key.value.trim();
-if(u===USER && k===LIC){
-loginMsg.innerHTML="✅ BOT ACTIVATED";
-loginMsg.style.color="#39ff14";
-setTimeout(()=>{
-loginBox.style.display="none";
-rulesBox.style.display="block";
-setBox.style.display="block";
-},800);
-}else{
-loginMsg.innerHTML="❌ INVALID ACCESS";
-loginMsg.style.color="#ff073a";
-}
+async function login(){
+  let u=user.value.trim();
+  let k=key.value.trim();
+  let loginMsgElem = loginMsg; // original variable
+
+  try {
+    const res = await fetch(LICENSE_URL);
+    const data = await res.json();
+
+    if(u === USER && data[k] === "active"){
+      loginMsgElem.innerHTML="✅ BOT ACTIVATED";
+      loginMsgElem.style.color="#39ff14";
+      setTimeout(()=>{
+        loginBox.style.display="none";
+        rulesBox.style.display="block";
+        setBox.style.display="block";
+      },800);
+    } else{
+      loginMsgElem.innerHTML="❌ INVALID ACCESS";
+      loginMsgElem.style.color="#ff073a";
+    }
+  } catch(e){
+    loginMsgElem.innerHTML="❌ LICENSE SERVER ERROR";
+    loginMsgElem.style.color="#ff073a";
+  }
 }
 
 // SHUFFLE ARRAY
 function shuffleArray(array){
-for(let i=array.length-1;i>0;i--){
-let j=Math.floor(Math.random()*(i+1));
-[array[i],array[j]]=[array[j],array[i]];
-}
+  for(let i=array.length-1;i>0;i--){
+    let j=Math.floor(Math.random()*(i+1));
+    [array[i],array[j]]=[array[j],array[i]];
+  }
 }
 
 // GENERATE SIGNAL FUNCTION
 function generate(){
 let n=parseInt(document.getElementById("count").value);
-let markets = ["USD/BDT","USD/INR","USD/BRL","USD/IDR","USD/NGN","USD/PKR","USD/MXN"];
+let markets = ["USD/BDT","USD/BRL","USD/IDR","USD/NGN","USD/PKR","EUR/CAD"];
 let directions = [];
 
 // Balanced UP/DOWN
@@ -231,13 +240,7 @@ out.innerHTML="";
 signals.forEach(s=>{
 let d=document.createElement("div");
 d.className="signal "+(s.includes("UP")?"up":"down");
-let isUp = s.includes("UP");
-
-if(isUp){
-  d.innerText = s.replace("UP","UP   ") + " 👆";
-}else{
-  d.innerText = s + " 👇";
-  }
+d.innerText=s+(s.includes("UP")?" 👆":" 👇");
 out.appendChild(d);
 });
 resultBox.style.display="block";
