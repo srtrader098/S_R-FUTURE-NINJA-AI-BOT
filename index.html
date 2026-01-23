@@ -213,38 +213,44 @@ let time = new Date(utc + 6*60*60000);
 // যদি আগের সিগনাল থাকে, শেষ সময় থেকে শুরু করো
 if(signals.length>0){
 let lastSignal = signals[signals.length-1];
-let lastTimeStr = lastSignal.split(" - ")[0];
-let [h,m] = lastTimeStr.split(":").map(Number);
-time.setHours(h);
-time.setMinutes(m);
+let timeMatch = lastSignal.match(/(\d{1,2}):(\d{2})/);
+
+if(timeMatch){
+  time.setHours(parseInt(timeMatch[1]));
+  time.setMinutes(parseInt(timeMatch[2]));
+    }
 }
 
 for(let i=0;i<n;i++){
-let gap = [2,3,5][Math.floor(Math.random()*3)];
-time.setMinutes(time.getMinutes() + gap);
+  let gap = [2,3,5][Math.floor(Math.random()*3)];
+  time.setMinutes(time.getMinutes() + gap);
 
-let h = time.getHours(); // 24-hour format
-let m = String(time.getMinutes()).padStart(2,"0");
+  let h = time.getHours();
+  let m = String(time.getMinutes()).padStart(2,"0");
 
-let market = markets[Math.floor(Math.random()*markets.length)];
-let line = `${h}:${m} - ${market} - (OTC) > ${directions[i]}`;
-signals.push(line);
-}
+  let market = markets[Math.floor(Math.random()*markets.length)];
+
+  let action = directions[i] === "UP" ? "BUY" : "PUT";
+  let arrow  = directions[i] === "UP" ? "👆" : "👇";
+
+  let line = `✘ ${h}:${m} - ${market} - (OTC) > ${action} ${arrow}`;
+  signals.push(line);
+    }
 
 render();
 }
 
 // RENDER FUNCTION
 function render(){
-out.innerHTML="";
-signals.forEach(s=>{
-let d=document.createElement("div");
-d.className="signal "+(s.includes("UP")?"up":"down");
-d.innerText=s+(s.includes("UP")?" 👆":" 👇");
-out.appendChild(d);
-});
-resultBox.style.display="block";
-}
+  out.innerHTML="";
+  signals.forEach(s=>{
+    let d=document.createElement("div");
+    d.className = "signal " + (s.includes("BUY") ? "up" : "down");
+    d.innerText = s;
+    out.appendChild(d);
+  });
+  resultBox.style.display="block";
+    }
 </script>
 </body>
 </html>
